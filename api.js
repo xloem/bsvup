@@ -69,6 +69,9 @@ async function broadcast_insight(tx){
         if(r.message && r.message.message){
             throw r.message.message.split('\n').slice(0,3).join('\n')
         }
+        if(!r.txid){
+            throw r
+        }
         return r.txid
     }).catch(async err=>{
         log(" BitIndex API return Errors: ", logLevel.INFO)
