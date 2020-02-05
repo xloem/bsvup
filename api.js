@@ -117,14 +117,14 @@ async function broadcast_insight(tx){
 /*
     Wrapped broadcast transaction, push unbroadcast transaction into unbroadcast array provided.
 */
-async function broadcast(tx, unBroadcast){
+async function broadcast(tx){
     try {
       const res = await broadcast_insight(tx)
       Cache.saveTX(tx)
       log(`Broadcasted ${res}`, logLevel.INFO)
       return res
     } catch(e) {
-      if(unBroadcast && Array.isArray(unBroadcast))unBroadcast.push(tx)
+      Cache.saveUnbroadcastTX(tx)
       throw e
     }
 }
@@ -134,15 +134,17 @@ async function broadcast(tx, unBroadcast){
     If TXs is null, load transactions from cache.
 */
 async function tryBroadcastAll(TXs){
-    var toBroadcast = TXs? TXs : Cache.loadUnbroadcast()
-    var unBroadcast = []
+    // to keep api the same, we could write a generator
+    var toBroadcast = TXs
+	?()=>{ for (let tx of TXs) { yield tx; }
+	:()=>{ for (let tx of Cache.loadUnbroadcast()) { yield loadUnbroadcastTX(tx); } }
     var needToWait = false
-    for (let tx of toBroadcast) {
+    for (let tx of toBroadcast()) {
       try {
         if (needToWait) {
           unBroadcast.push(tx)
         } else {
-          await broadcast(tx, unBroadcast)
+          await broadcast(tx)
         }
       } catch([txid,err]) {
         log(`${txid} 广播失败，原因 fail to broadcast:`, logLevel.INFO)
@@ -153,7 +155,7 @@ async function tryBroadcastAll(TXs){
         }
       }
     }
-    return Cache.saveUnbroadcast(unBroadcast)
+    return loadUnbroadcastList()
 }
 
 /*

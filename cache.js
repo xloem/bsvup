@@ -22,6 +22,9 @@ function init(){
     if(!fs.existsSync("./.bsv/tx")){
         fs.mkdirSync("./.bsv/tx")
     }
+    if(!fs.existsSync("./.bsv/unbroadcast")){
+        fs.mkdirSync("./.bsv/unbroadcast")
+    }
     // 初始化D树文件
     if(!fs.existsSync("./.bsv/info")){
         fs.mkdirSync("./.bsv/info")
@@ -66,6 +69,9 @@ function loadFileRecord(sha1){
 
 function saveTX(tx){
     fs.writeFileSync(`./.bsv/tx/${tx.id}`, tx.toString())
+    if (fs.existsSync(`./.bsv/unbroadcast/${tx.id}`)){
+        fs.unlinkSync(`./.bsv/unbroadcast/${tx.id}`)
+    }
 }
 
 function loadTX(txid){
@@ -76,19 +82,20 @@ function loadTX(txid){
     }
 }
 
-function saveUnbroadcast(unBroadcast){
-    if(unBroadcast.length>0){
-        fs.writeFileSync("./.bsv/unbroadcasted.tx.json", JSON.stringify(unBroadcast))
-        return unBroadcast
-    }else{
-        if(fs.existsSync("./.bsv/unbroadcasted.tx.json"))fs.unlinkSync("./.bsv/unbroadcasted.tx.json")
-        return []
-    }
+function saveUnbroadcastTX(tx){
+    fs.writeFileSync(`./.bsv/unbroadcast/${tx.id}`, tx.toString())
 }
 
-function loadUnbroadcast(){
-    unBroadcast = JSON.parse(fs.readFileSync("./.bsv/unbroadcasted.tx.json")).map(tx=>bsv.Transaction(tx))
-    return unBroadcast
+function loadUnbroadcastList(){
+    return fs.readdirSync('./.bsv/unbroadcast/')
+}
+
+function loadUnbroadcastTX(){
+    try{
+        return bsv.Transaction(fs.readFileSync(`./.bsv/unbroadcast/${txid}`).toString())
+    }catch(err){
+        return null
+    }
 }
 
 module.exports = {
@@ -100,6 +107,7 @@ module.exports = {
     loadFileRecord: loadFileRecord,
     saveTX: saveTX,
     loadTX: loadTX,
-    saveUnbroadcast: saveUnbroadcast,
-    loadUnbroadcast: loadUnbroadcast
+    saveUnbroadcastTX: saveUnbroadcastTX,
+    loadUnbroadcastList: loadUnbroadcastList,
+    loadUnbroadcastTX: loadUnbroadcastTX
 }
