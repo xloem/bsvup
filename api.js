@@ -136,8 +136,8 @@ async function broadcast(tx){
 async function tryBroadcastAll(TXs){
     // to keep api the same, we could write a generator
     var toBroadcast = TXs
-	?()=>{ for (let tx of TXs) { yield tx; }
-	:()=>{ for (let tx of Cache.loadUnbroadcast()) { yield loadUnbroadcastTX(tx); } }
+	?function*(){ for (let tx of TXs) { yield tx; }
+	:function*(){ for (let tx of Cache.loadUnbroadcast()) { yield loadUnbroadcastTX(tx); } }
     var needToWait = false
     for (let tx of toBroadcast()) {
       try {
