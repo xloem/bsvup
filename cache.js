@@ -90,7 +90,7 @@ function loadUnbroadcastList(){
     return fs.readdirSync('./.bsv/unbroadcast/')
 }
 
-function loadUnbroadcastTX(){
+function loadUnbroadcastTX(txid){
     try{
         return bsv.Transaction(fs.readFileSync(`./.bsv/unbroadcast/${txid}`).toString())
     }catch(err){
