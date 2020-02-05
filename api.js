@@ -80,7 +80,7 @@ async function broadcast_insight(tx){
             log(r, logLevel.INFO)
             log("Waiting 60s ...", logLevel.INFO)
             return new Promise(resolve=>setTimeout(resolve,60000))
-                .then(()=>bitindex.tx.send(tx.toString()))
+                .then(()=>broadcast_insight(tx))
         }
         return r.txid
     }).catch(async err=>{
