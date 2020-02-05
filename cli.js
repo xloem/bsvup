@@ -175,7 +175,7 @@ async function upload(){
         toBroadcast = answers.broadcast
     }
     if (toBroadcast) {
-        Cache.saveUnbroadcast(unBroadcast)
+        for (let tx of unBroadcast){ Cache.saveUnbroadcastTX(tx) }
         var timenow = new Date().getTime()
         fs.writeFileSync(`bsvup.${timenow}.tasks`, JSON.stringify(tasks))
         console.log(`Tasks is saved at bsvup.${timenow}.tasks`)
