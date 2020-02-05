@@ -80,10 +80,10 @@ async function broadcast_insight(tx){
     }).catch(async err=>{
         log(" BitIndex API return Errors: ", logLevel.INFO)
         log(err, logLevel.INFO)
-        let txexists = await bitindex.tx.get(tx.id)
-        if (txexists.txid) {
+        let txexists = await BitDB.findTx(tx.id)
+        if (txexists.length) {
             log(" However, transaction is actually present.", logLevel.INFO)
-            return txexists.txid
+            return tx.id
         } else {
             throw [tx.id, "BitIndex API return Errors: " + err]
         }
@@ -136,13 +136,21 @@ async function broadcast(tx, unBroadcast){
 async function tryBroadcastAll(TXs){
     var toBroadcast = TXs? TXs : Cache.loadUnbroadcast()
     var unBroadcast = []
+    var needToWait = false
     for (let tx of toBroadcast) {
       try {
-        await broadcast(tx, unBroadcast)
+        if (needToWait) {
+          unBroadcast.push(tx)
+        } else {
+          await broadcast(tx, unBroadcast)
+        }
       } catch([txid,err]) {
         log(`${txid} 广播失败，原因 fail to broadcast:`, logLevel.INFO)
         log(err.split("\n")[0], logLevel.INFO)
         log(err.split("\n")[2], logLevel.INFO)
+        if (err.indexOf("too-long-mempool-chain") == -1) {
+          needToWait = true
+        }
       }
     }
     return Cache.saveUnbroadcast(unBroadcast)
