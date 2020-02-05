@@ -142,7 +142,7 @@ async function tryBroadcastAll(TXs){
     for (let tx of toBroadcast()) {
       try {
         if (needToWait) {
-          unBroadcast.push(tx)
+          Cache.saveUnbroadcastTX(tx)
         } else {
           await broadcast(tx)
         }
