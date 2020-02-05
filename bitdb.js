@@ -3,6 +3,19 @@ const bitdb = 'https://genesis.bitdb.network/q/1FnauZ9aUH2Bex6JzdcV4eNX7oLSSEbxt
 const BitDBKey = ['159bcdKY4spcahzfTZhBbFBXrTWpoh4rd3']
 const fetch = require('node-fetch')
 
+function findTx(id) {
+    var query = queryTx(id)
+    var b64 = Buffer.from(JSON.stringify(query)).toString('base64');
+    var url = bitdb + b64;
+    var header = {
+        headers: { key: BitDBKey }
+    };
+    return fetch(url, header)
+        .then(r => r.json())
+        .then(r => r.u.concat(r.c))
+        .catch(err => console.log(err))
+}
+
 function findExist(buffer) {
     var sha1 = bsv.crypto.Hash.sha1(buffer).toString('hex')
     var query = queryHash(sha1)
@@ -36,6 +49,20 @@ function findD(key, address) {
         //.then(r=>{console.log(r);return r})
         //.then(r=>(r.length>0)?r[0]:null)
         .catch(err => console.log(err))
+}
+
+function queryTx(id) {
+    return {
+        "v": 3,
+        "q": {
+            "find": {
+                "tx.h": id
+            },
+            "project": {
+                "tx.h": 1
+            },
+        },
+    }
 }
 
 function queryHash(hash) {
@@ -79,6 +106,7 @@ function queryD(key, address) {
 }
 
 module.exports = {
+    findTx: findTx,
     findExist: findExist,
     findD: findD
 }
