@@ -342,7 +342,7 @@ function upload_FileTask(fileBuf, mime) {
                 out: {
                     data: buf
                 },
-                satoshis: buf.length
+                satoshis: Math.ceil(buf.length / 1000 * FEE_PER_KB)
             }
         })
         // 然后创建Bcat任务
@@ -359,7 +359,7 @@ function upload_FileTask(fileBuf, mime) {
                 chunks: null
             },
             deps: partTasks,
-            satoshis: 64 * bufferChunks.length
+            satoshis: Math.ceil(64 * bufferChunks.length / 1000 * FEE_PER_KB)
         }
         partTasks.forEach(task => tasks.push(task))
         tasks.push(bcatTask)
@@ -390,7 +390,7 @@ function upload_dTask(key, depTasks) {
             sequence: new Date().getTime().toString()
         },
         deps: depTasks,
-        satoshis: key.length + 64
+        satoshis: Math.ceil((key.length + 64) / 1000 * FEE_PER_KB)
     }
 }
 
@@ -415,7 +415,7 @@ function update_dTask(key, value) {
             type: "b",
             sequence: new Date().getTime().toString()
         },
-        satoshis: key.length + 64
+        satoshis: Math.ceil((key.length + 64) / 1000 * FEE_PER_KB)
     }
 }
 
