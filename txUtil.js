@@ -37,7 +37,7 @@ const TX_SIZE_MAX = 1000000
 */
 function verifyTX(tx) {
     API.log(`Verifying ${tx.id}`, API.logLevel.VERBOSE)
-    if (tx.inputAmount - tx.outputAmount < tx.toString().length / 2) {
+    if (tx.inputAmount - tx.outputAmount < tx.toString().length / 8) {
         API.log(JSON.stringify(tx), API.logLevel.VERBOSE)
         throw new Error(`${tx.id}: Insuffient Satoshis`)
     }
