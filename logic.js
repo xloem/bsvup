@@ -28,7 +28,7 @@ const txutil = require("./txUtil.js")
 
 const CHUNK_SIZE = 64000
 const BASE_TX = 400
-const FEE_PER_KB = 1536
+const FEE_PER_KB = 500
 const DUST_LIMIT = 546
 const MAX_OUTPUT = 1000
 const SIZE_PER_OUTPUT = 100
@@ -323,7 +323,7 @@ function upload_FileTask(fileBuf, mime) {
                 encoding: "binary",
                 filename: sha1
             },
-            satoshis: fileBuf.length
+            satoshis: Math.ceil(fileBuf.length / 1000 * FEE_PER_KB)
         }
         tasks.push(fileTask)
     } else {
