@@ -12,7 +12,7 @@ const API = require('./api.js')
 
 const CHUNK_SIZE = 64000
 const MIN_FEE_PER_KB = 250
-const FEE_PER_KB = 500
+const FEE_PER_KB = MIN_FEE_PER_KB
 const BASE_BPART_SIZE = 250
 const BASE_B_SIZE = 300
 const DUST_LIMIT = 546
