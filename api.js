@@ -19,6 +19,7 @@ var bitindex = require('bitindex-sdk').instance({
   api_key: '4ZiBSwCzjgkCzDbX9vVV2TGqe951CBrwZytbbWiGqDuzkDETEkLJ9DDXuNMLsr8Bpj'
 })
 */
+var bitfiles = require('bitfiles')
 var mattercloud = require('mattercloudjs').instance({
   api_key: '4ZiBSwCzjgkCzDbX9vVV2TGqe951CBrwZytbbWiGqDuzkDETEkLJ9DDXuNMLsr8Bpj'
 })
@@ -202,10 +203,8 @@ async function getTX (txid) {
     if (tx) {
       resolve(tx)
     } else {
-      // Access mattercloud with Insight API
-      //mattercloud.getTx(txid).then(res => {
-      axios.get(`https://api.mattercloud.net/api/rawtx/${txid}`).then(res=>res.data).then(res => {
-        tx = bsv.Transaction(res.rawtx)
+      bitfiles.tx(txid).then(res => {
+        tx = bsv.Transaction(res)
         Cache.saveTX(tx)
         resolve(tx)
       }).catch(err => {
