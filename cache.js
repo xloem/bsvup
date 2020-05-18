@@ -180,8 +180,9 @@ function wipeUnbroadcast () {
 function abandonUnbroadcast () {
   if (haveUnbroadcast()) {
     for (let transaction of loadUnbroadcast()) {
-      saveTX(`transactions-abandoned-${Date.now()}`)
+      saveTX(transaction.id, `transactions-abandoned-${Date.now()}`)
       wipeTX(transaction.id)
+      wipeTX(transaction.id, 'unbroadcasted')
     }
   }
 }
