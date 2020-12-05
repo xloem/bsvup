@@ -27,13 +27,14 @@ var axios = require('axios')
 /*
     Handling transfer
 */
-async function transfer (address, key) {
+async function transfer (address, key, feePerKB) {
   var utxos = await getUTXOs(key.toAddress().toString())
+  log(`${utxos.length} utxos`)
   // 开始构造转账TX
   var tx = bsv.Transaction()
   utxos.forEach(utxo => tx.from(utxo))
   tx.change(address)
-  tx.feePerKb(1536)
+  tx.feePerKb(feePerKB)
   tx.sign(key)
   log(`转账TXID Transfer TXID: ${tx.id}`, logLevel.INFO)
   await broadcastInsight(tx.toString(), true)

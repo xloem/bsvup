@@ -35,9 +35,9 @@ const SIZE_PER_OUTPUT = 100
 /*
     Wrap task lifecircle, read file datum from fs, create tasks and make tasks ready to broadcast
 */
-async function prepareUpload (path, privkey, type, subdir, feePerKB) {
+async function prepareUpload (path, privkey, type, subdir, feePerKB, rename) {
   // read files
-  var fileDatum = await getFileDatum(path, type, subdir)
+  var fileDatum = await getFileDatum(path, type, subdir, rename)
   // check existed
   fileDatum = await reduceFileDatum(fileDatum, privkey.toAddress())
   // create tasks
@@ -67,13 +67,13 @@ async function prepareUpload (path, privkey, type, subdir, feePerKB) {
     Output
     - file datum
 */
-async function getFileDatum (path, dirHandle, subdir) {
+async function getFileDatum (path, dirHandle, subdir, rename) {
   API.log(`[+] Loading files from ${path}`, API.logLevel.INFO)
   API.log(`    Directory type: ${dirHandle}`, API.logLevel.VERBOSE)
   API.log(`    Target sub directory: ${subdir}`, API.logLevel.VERBOSE)
 
   var fileDatum = []
-  var files = API.isDirectory(path) ? API.readFiles(path) : [path.split('/').reverse()[0]]
+  var files = API.isDirectory(path) ? API.readFiles(path) : [path]
   var basePath = API.isDirectory(path) ? path : path.split('/').reverse().slice(1).reverse().join('/')
 
   API.log(`    Base path: ${basePath}`, API.logLevel.VERBOSE)
@@ -87,6 +87,9 @@ async function getFileDatum (path, dirHandle, subdir) {
       continue
     }
     var relativePath = file.slice(basePath.length)
+    if (files.length == 1 && rename) {
+        relativePath = rename
+    }
     API.log(` - Reading ${API.isDirectory(file) ? 'directory' : 'file'}: ${relativePath}`, API.logLevel.VERBOSE)
 
     var filename = (subdir + '/' + relativePath).replace(/\/\/+/g, '/')

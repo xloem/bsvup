@@ -43,6 +43,7 @@ program
 program
   .version(require('./package.json').version)
   .option('-f, --file [file]', 'File/Directory to upload 【指定要上传的文件/目录】')
+  .option('-e, --rename [name]', 'Name to rename uploaded file to')
   .option('-k, --key [private key]', 'Appoint private key mannually 【指定使用的私钥】')
   .option('-q, --quick', 'Skip file existence check  【快速上传，不检查文件是否已在链上】')
   .option('-a, --address', 'Address to transfer to / 【目标转账地址】')
@@ -135,7 +136,7 @@ async function upload () {
   var key = (program.key) ? program.key : await loadKey()
   var path = (program.file) ? program.file : process.cwd()
   var feePerKB = Number(program.rate)
-  var tasks = await logic.prepareUpload(path, key, program.type, program.subdirectory, feePerKB)
+  var tasks = await logic.prepareUpload(path, key, program.type, program.subdirectory, feePerKB, program.rename)
 
   // Briefing
   console.log('----------------------------------------------------------------------')
@@ -215,6 +216,7 @@ function showQR (key) {
   console.log('私钥直接保存于本地，尽管有密码保护，并非钱包级安全性，请不要在其中存放过多金额。')
   console.log('Even though private key is encrypted, do not leave too much satoshis in.')
   console.log('----------------------------------------------------------------------')
+  //console.log(key.toWIF())
 }
 
 async function transfer () {
@@ -231,7 +233,7 @@ async function transfer () {
     return
   }
   var key = await loadKey()
-  await api.transfer(address, key)
+  await api.transfer(address, key, program.rate)
 }
 
 async function loadKey () {
