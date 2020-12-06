@@ -23,6 +23,7 @@
 */
 
 const bsv = require('bsv')
+const zlib = require('zlib')
 const API = require('./api.js')
 const txutil = require('./txUtil.js')
 
@@ -35,13 +36,13 @@ const SIZE_PER_OUTPUT = 100
 /*
     Wrap task lifecircle, read file datum from fs, create tasks and make tasks ready to broadcast
 */
-async function prepareUpload (path, privkey, type, subdir, feePerKB) {
+async function prepareUpload (path, privkey, type, subdir, feePerKB, gzip) {
   // read files
   var fileDatum = await getFileDatum(path, type, subdir)
   // check existed
   fileDatum = await reduceFileDatum(fileDatum, privkey.toAddress())
   // create tasks
-  var tasks = await createUploadTasks(fileDatum, feePerKB)
+  var tasks = await createUploadTasks(fileDatum, feePerKB, gzip)
   // var tasks = await createUploadTasks(path, privkey, type, subdir)
   if (tasks.length === 0) return tasks
   // fund tasks (Throw insuffient satoshis error if not enough)
@@ -173,7 +174,7 @@ async function reduceFileDatum (fileDatum, address) {
         }
     ]
 */
-async function createUploadTasks (filedatum, feePerKB) {
+async function createUploadTasks (filedatum, feePerKB, gzip) {
   feePerKB = feePerKB || 1000
   API.log(`[+] Creating Tasks`, API.logLevel.INFO)
   var tasks = []
@@ -181,7 +182,7 @@ async function createUploadTasks (filedatum, feePerKB) {
     var bTasks, dTask
     if (!filedata.bExist) {
       API.log(` - Create B/D tasks for ${filedata.dKey}`, API.logLevel.VERBOSE)
-      bTasks = uploadFileTask(filedata.buf, filedata.mime, feePerKB)
+      bTasks = uploadFileTask(filedata.buf, filedata.mime, feePerKB, gzip)
       dTask = uploadDTask(filedata.dKey, bTasks, feePerKB)
       tasks.push(dTask)
       bTasks.forEach(bTask => tasks.push(bTask))
@@ -211,7 +212,7 @@ async function createUploadTasks (filedatum, feePerKB) {
     Output
     - Tasks
 */
-function uploadFileTask (fileBuf, mime, feePerKB) {
+function uploadFileTask (fileBuf, mime, feePerKB, gzip) {
   feePerKB = feePerKB || 1000
   /*
     var fileBuf = fs.readFileSync(filename)
@@ -220,7 +221,7 @@ function uploadFileTask (fileBuf, mime, feePerKB) {
   var sha1 = bsv.crypto.Hash.sha1(fileBuf).toString('hex')
 
   var tasks = []
-  if (fileBuf.length <= CHUNK_SIZE) {
+  if (fileBuf.length <= CHUNK_SIZE && !gzip) {
     // 单个B协议TX就可以解决这个文件
     var fileTask = {
       type: 'B',
@@ -236,6 +237,9 @@ function uploadFileTask (fileBuf, mime, feePerKB) {
     tasks.push(fileTask)
   } else {
     // 要用Bcat了
+    if (gzip) {
+        fileBuf = zlib.gzipSync(fileBuf, {level:9})
+    }
     // 先切分Buffer
     var bufferChunks = []
     while (fileBuf.length > 0) {
@@ -263,7 +267,7 @@ function uploadFileTask (fileBuf, mime, feePerKB) {
         mime: mime,
         encoding: 'binary',
         filename: sha1,
-        flag: bsv.deps.Buffer.from('00', 'hex'),
+        flag: gzip ? 'gzip' : bsv.deps.Buffer.from('00', 'hex'),
         chunks: null
       },
       deps: partTasks,
