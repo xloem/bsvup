@@ -116,8 +116,8 @@ async function init () {
     showQR(pk)
   }
 }
-async function broadcast () {
-  let remaining = await api.tryBroadcastAll()
+async function broadcast (TXs) {
+  let remaining = await api.tryBroadcastAll(TXs)
   if (remaining.length > 0) {
     console.log(`${remaining.length}个TX广播失败，已保存至'./.bsv/unbroadcasted/'，120秒后重新尝试广播。`)
     console.log(`Not All Transaction Broadcasted, ${remaining.length} transaction(s) is saved to './.bsv/unbroadcasted/' and will be rebroadcasted in 120s.`)
@@ -180,7 +180,13 @@ async function upload () {
     fs.writeFileSync(`bsvup.${timenow}.txs`, JSON.stringify(unBroadcast.map(tx => tx.toString())))
     console.log(`TX(s) for the tasks is saved at bsvup.${timenow}.txs`)
     console.log('开始广播，可能需要花费一段时间，等几个区块。\r\nStart Broadcasting, it may take a while and several block confirmation...')
-    broadcast()
+    /* pass the transactions from memory in addition to caching them on the filesystem.
+       this protects them a little more in the face of corruption or malware.
+       could pass null if files don't fit in memory.
+        note: broadcasting does not compare disk to memory -- it's just a precaution for now.
+       TODO: port client to a self-hosting compiled language such as C,
+             for similar reasons. */
+    broadcast(unBroadcast)
   }
 }
 
